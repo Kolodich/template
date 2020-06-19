@@ -1,0 +1,43 @@
+|---gulpfile.js
+|---package-lock.json
+|---package.json
+|---deploy
+|---node_modules
+`---work
+    |---.htaccess
+    |---index.html
+    |---_end.html
+    |---_index.html
+    |---_start.html
+    |---blocks
+    |   |---main.js
+    |   |---main.scss
+    |   |---footer
+    |   |   |---_footer.html
+    |   |   |---_footer.js
+    |   |   `---_footer.scss
+    |   `---header
+    |       |---_header.html
+    |       |---_header.js
+    |       `---_header.scss
+    |---css
+    |   |---style.css
+    |   `---style.min.css
+    |---img
+    |---js
+    |   |---script.js
+    |   `---script.min.js
+    `---video
+
+The installation of all packages - npm install --save-dev
+
+Methods of the script:
+gulp - merging and minifying files, local server
+gulp deploy - build all fileofs into a ready-made project
+
+deploy - folder where the project is going
+work - main working folder
+
+work/blocks - blocks that are later used to merg an HTML file
+work/css and work/js - collected and compiled scss in css and js files
+
