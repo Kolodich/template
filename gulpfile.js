@@ -1,3 +1,14 @@
+// !!---------------- Methods ----------------!!
+// css          - compile *.scss to style.css with sourcemap
+// js           - compile  *.js to sciprt.css with sourcemap
+// minfy_css    - comprese style.css file to style.min.css
+// min_js       - comprese script.js file to script.min.js
+// minfy_img    - comprase SVG, GIF, PNG, JPG (JPEG) images to name.min.*
+// include_html - include HTML pieces into HTML file
+// create_block - filling in the block when renaming it
+// watch        - watching files
+// server       - create local server
+// deploy       - deploy project
 
 const gulp = require("gulp");
 
@@ -23,7 +34,6 @@ const base_dir = "./work/";
 const deploy_dir = "./deploy/";
 
 
-// compile *.scss to style.css with sourcemap
 const css = () => {
  return gulp.src(base_dir+"blocks/main.scss")
  .pipe(sourcemaps.init())
@@ -45,7 +55,6 @@ const css = () => {
 }
 exports.css = css;
 
-// comprese style.css file to style.min.css
 const minfy_css = () =>{
   return gulp.src(base_dir+"css/style.css")
   .pipe(min_css({compatibility: 'ie8'}))
@@ -55,7 +64,6 @@ const minfy_css = () =>{
 }
 exports.minfy_css = minfy_css;
 
-// compile  *.js to sciprt.css with sourcemap
 const js = () => {
  return gulp.src(base_dir+"blocks/**/*.js")
  .pipe(sourcemaps.init())
@@ -67,7 +75,6 @@ const js = () => {
 }
 exports.js = js;
 
-// comprese script.js file to script.min.js
 const minfy_js = () =>{
  return gulp.src(base_dir+"js/script.js")
   .pipe(min_js())
@@ -77,9 +84,8 @@ const minfy_js = () =>{
 }
 exports.minfy_js = minfy_js;
 
-// comprase SVG, GIF, PNG, JPG (JPEG) images to img.min.*
 const minfy_img = (done) =>{
- gulp.src(base_dir+'img/**/*[!.min].*(png|svg|gif|jpg|jpeg)')
+ gulp.src(base_dir+'img/**/*[!.min].*(svg|png|gif|jpg|jpeg)')
    .pipe(min_img({
     pngquant: true,
     optipng: true,
@@ -99,7 +105,6 @@ const minfy_img = (done) =>{
 }
 exports.minfy_img = minfy_img;
 
-// include HTML pieces into HTML file
 const include_html = (done) =>{
   // Including from _*.html (no _start/_end.html) to *.html
   gulp.src(base_dir+'_!(end|start)*.html')
@@ -117,7 +122,6 @@ const include_html = (done) =>{
 }
 exports.include_html = include_html;
 
-// filling in the block when renaming it
 const create_block = (done) =>{
   let all_blocks = base_dir+'blocks';
   let dirs = fs.readdirSync(all_blocks); // get a list of child directories   
@@ -144,7 +148,6 @@ const create_block = (done) =>{
 }
 exports.create_block =create_block;
 
-// local server
 const server = (done) => {
   sync.init({
    server:{
@@ -157,7 +160,6 @@ const server = (done) => {
 }
 exports.server = server;
 
-// deploy project
 const deploy = (done) =>{
   del.sync(deploy_dir);
 
@@ -191,7 +193,6 @@ const deploy = (done) =>{
 }
 exports.deploy = gulp.series(gulp.parallel(gulp.series(css, minfy_css), gulp.series(js, minfy_js), minfy_img, include_html), deploy);
 
-// watching files
 const watch = () => {
  gulp.watch([base_dir+"blocks/**/_*.scss", base_dir+"blocks/main.scss"], gulp.series(css, minfy_css));
  gulp.watch([base_dir+"blocks/**/_*.js", base_dir+"blocks/main.js"], gulp.series(js, minfy_js));
