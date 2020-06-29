@@ -202,7 +202,7 @@ const deploy = (done) =>{
   console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" video files ready");
 
   gulp.src(base_dir+"fonts/**/*.*") 
-  .pipe(gulp.dest(deploy_dir+"video/"));
+  .pipe(gulp.dest(deploy_dir+"fonts/"));
   console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" font files ready");
 
   done();
