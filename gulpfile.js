@@ -1,38 +1,42 @@
-// !!---------------- Methods ----------------!!
+// !------ Description of tasks and methods ------!
 // css          - compile *.scss to style.css with sourcemap
 // js           - compile  *.js to sciprt.css with sourcemap
 // minfy_css    - comprese style.css file to style.min.css
 // min_js       - comprese script.js file to script.min.js
 // minfy_img    - comprase SVG, GIF, PNG, JPG (JPEG) images to name.min.*
-// include_html - include HTML pieces into HTML file
+// include_html - includ from _*.html (no _start/_end.html) to *.html
 // create_block - filling in the block when renaming it
 // watch        - watching files
 // server       - create local server
 // deploy       - deploy project
 
-const gulp = require("gulp");
+// !------------------ Requires ------------------!
 
-const sync = require('browser-sync').create();
+const gulp         = require("gulp");
 
-const sass = require('gulp-sass');
+const sync         = require('browser-sync').create();
+
+const sass         = require('gulp-sass');
 const autoprefixer = require('gulp-autoprefixer');
 
-const min_css = require('gulp-clean-css');
-const min_js = require('gulp-jsmin');
-const min_img = require('gulp-image');
+const min_css      = require('gulp-clean-css');
+const min_js       = require('gulp-jsmin');
+const min_img      = require('gulp-image');
 
-const rename = require("gulp-rename");
-const sourcemaps = require('gulp-sourcemaps');
-const concat = require('gulp-concat');
-const fileinclude = require('gulp-file-include');
+const rename       = require("gulp-rename");
+const sourcemaps   = require('gulp-sourcemaps');
+const concat       = require('gulp-concat');
+const fileinclude  = require('gulp-file-include');
+const replace      = require('gulp-replace');
 
-const fs = require('fs');
-const del = require('del');
-const clean = require('gulp-clean');
+const fs           = require('fs');
+const del          = require('del');
+const clean        = require('gulp-clean');
 
-const base_dir = "./work/";
-const deploy_dir = "./deploy/";
+const base_dir     = "./work/";
+const deploy_dir   = "./deploy/";
 
+// !--------------- Tasks and methods ---------------!
 
 const css = () => {
  return gulp.src(base_dir+"blocks/main.scss")
@@ -106,7 +110,6 @@ const minfy_img = (done) =>{
 exports.minfy_img = minfy_img;
 
 const include_html = (done) =>{
-  // Including from _*.html (no _start/_end.html) to *.html
   gulp.src(base_dir+'_!(end|start)*.html')
     .pipe(fileinclude({
       prefix: '@@',
@@ -116,13 +119,13 @@ const include_html = (done) =>{
     .pipe(rename(function(path){
       path.basename = path.basename.replace("_", "");
     }))
-    .pipe(gulp.dest(base_dir+''))
+    .pipe(gulp.dest(base_dir))
     .pipe(sync.stream());
   done();
 }
 exports.include_html = include_html;
 
-const create_block = (done) =>{
+const create_block = () =>{
   let all_blocks = base_dir+'blocks';
   let dirs = fs.readdirSync(all_blocks); // get a list of child directories   
   
@@ -144,9 +147,8 @@ const create_block = (done) =>{
       console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" files were sucessfully added to "+base_dir+"blocks/"+dirs[i]);
     }
   }
-  done();
+  
 }
-exports.create_block =create_block;
 
 const server = (done) => {
   sync.init({
@@ -168,12 +170,22 @@ const deploy = (done) =>{
   gulp.src(base_dir+".htaccess")  
   .pipe(gulp.dest(deploy_dir+""));
   console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" .htacces ready");
-
+  
   gulp.src(base_dir+"[!_]*.html")
+  .pipe(replace('./css/style.css', './css/style.min.css'))
+  .pipe(replace('./js/script.js', './js/script.min.js' ))
+  .pipe(replace('src="../../', 'src="./'))
+  .pipe(replace('src=\'../../', 'src=\'./'))
+  .pipe(replace(/(src|href)=('|").+?('|")/g,  (math) => {
+    return math.replace(/ /g, "%20");
+  }))
   .pipe(gulp.dest(deploy_dir));
-  console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" HTML files ready");
+  console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" HTML files ready. ");
 
   gulp.src(base_dir+"css/**/*.css")  
+  .pipe(replace(/url\(.+?\)/g,  (math) => {
+    return math.replace(/\.\.\/\.\.\//g, "../");
+  }))
   .pipe(gulp.dest(deploy_dir+"css/"));
   console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" CSS files ready");
 
@@ -188,21 +200,29 @@ const deploy = (done) =>{
   gulp.src(base_dir+"video/**/*.*") 
   .pipe(gulp.dest(deploy_dir+"video/"));
   console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" video files ready");
-  
+
+  gulp.src(base_dir+"fonts/**/*.*") 
+  .pipe(gulp.dest(deploy_dir+"video/"));
+  console.log("["+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]"+" font files ready");
+
   done();
 }
 exports.deploy = gulp.series(gulp.parallel(gulp.series(css, minfy_css), gulp.series(js, minfy_js), minfy_img, include_html), deploy);
 
+// !-------------- watch task --------------!
+
 const watch = () => {
- gulp.watch([base_dir+"blocks/**/_*.scss", base_dir+"blocks/main.scss"], gulp.series(css, minfy_css));
- gulp.watch([base_dir+"blocks/**/_*.js", base_dir+"blocks/main.js"], gulp.series(js, minfy_js));
+ gulp.watch([base_dir+"blocks/**/_*.scss", base_dir+"blocks/main.scss"], css);
+ gulp.watch([base_dir+"blocks/**/_*.js", base_dir+"blocks/main.js"], js);
  gulp.watch([base_dir+"_*.html", base_dir+"blocks/**/_*.html"], include_html);
  gulp.watch(base_dir+"img/**/*[!.min].*(png|svg|gif|jpg|jpeg)", minfy_img);
- gulp.watch(base_dir+"blocks/*").on('addDir', create_block);
+ gulp.watch(base_dir+"blocks/*").on('addDir', () =>{create_block()});
 }
 exports.watch = watch;
 
+// !-------------- Default task --------------!
+
 exports.default = gulp.series(
-  gulp.parallel(gulp.series(css, minfy_css), gulp.series(js, minfy_js), minfy_img, create_block, include_html),
+  gulp.parallel(css, js, minfy_img, (done) =>{create_block();done();}, include_html),
   gulp.parallel(server, watch)
 );
